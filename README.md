@@ -34,3 +34,5 @@ Visit http://localhost:8080 from server computer, or http://SERVER_LAN_IP:8080 f
 ## v1.1
 Heading hold: bật checkbox, chỉnh Target heading. Q/E quay ở chế độ yaw rate. Biểu đồ tách FL/FR/RL/RR. Khởi động lại server và Ctrl+Shift+R.
 \n## v1.2 Telemetry Studio\n- Đồ thị 4 kênh chung trục, có legend bật/tắt, tooltip hover, trục X thời gian thực và Y có tick giá trị.\n- Lưu lịch sử trên RAM trình duyệt tối đa 60 phút, lựa chọn cửa sổ thời gian, pause hiển thị, xóa lịch sử và xuất CSV.\n- Không dùng thư viện chart ngoài, chạy offline trên LAN.\n- Khi thay file cần restart server và hard refresh Ctrl+Shift+R.\n
+
+sonvv
