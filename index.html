@@ -1,0 +1,92 @@
+<!doctype html><html lang="vi"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Swerve Control | Telemetry Studio</title><style>
+:root{color-scheme:dark;font-family:system-ui,Arial}body{margin:0;background:#0c1423;color:#e5edf7}header{padding:18px 25px;background:#152338;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px}h1{font-size:20px;margin:0}main{padding:18px;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}.card{background:#17253a;border:1px solid #30435e;border-radius:12px;padding:16px;min-width:0}h2{font-size:16px;margin:0 0 12px}.wide{grid-column:span 2}button{background:#2563eb;color:white;border:0;border-radius:8px;padding:10px 18px;cursor:pointer;font-weight:700}button.stop{background:#dc2626}button:disabled{opacity:.5}#joy{touch-action:none;background:#0d1a2d;border-radius:50%;border:2px solid #365275;display:block;margin:auto;max-width:100%}.values{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;text-align:center}.metric{background:#0d1a2d;padding:12px;border-radius:8px}.metric b{display:block;font-size:20px;color:#5eead4}canvas.chart{width:100%;height:320px;display:block}.wheels{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}.wheel{background:#0d1a2d;padding:12px;border-radius:8px;text-align:center}.wheel b{color:#5eead4}.muted{color:#9db0c9;font-size:13px}#map{background:#0d1a2d;width:100%;height:300px;display:block;border-radius:8px}input[type=range]{width:100%}@media(max-width:800px){main{grid-template-columns:1fr}.wide{grid-column:span 1}.wheels{grid-template-columns:repeat(2,1fr)}}
+
+/* Telemetry Studio v1.2 */
+:root{font-family:Inter,ui-sans-serif,system-ui,sans-serif}body{background:radial-gradient(ellipse at 80% -10%,#172b4d 0,transparent 38%),#0a101c;color:#e9f1ff}
+header{background:#111b2b;border-bottom:1px solid #29374d;padding:19px 28px;position:sticky;top:0;z-index:5;backdrop-filter:blur(12px)}
+header h1{font-size:19px;letter-spacing:.3px}main{max-width:1600px;margin:auto;gap:18px;padding:24px}
+.card{background:linear-gradient(145deg,#172338,#111c2d);border:1px solid #293b54;border-radius:17px;padding:20px;box-shadow:0 10px 35px #02081425}
+h2{font-size:16px;letter-spacing:.2px}button{transition:filter .15s,transform .15s}button:hover{filter:brightness(1.13)}button:active{transform:scale(.98)}
+.chart-card{position:relative}.chart-card h2{margin:0}.chart-subtitle{font-size:12px;color:#8ea5c2;margin:5px 0 15px}
+.chart-tools{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin-bottom:12px}
+.chart-tools label{font-size:12px;color:#a7b8d0}.chart-tools select,.chart-tools button{background:#0d192b;color:#dbeafe;border:1px solid #33465f;border-radius:8px;padding:7px 10px;font-size:12px;font-weight:600}
+.chart-tools button{cursor:pointer}.chart-tools .active{background:#1e4771;border-color:#4c9dea}
+.chart-legend{display:flex;flex-wrap:wrap;gap:8px;margin-left:auto}.legend-item{border:1px solid #33465f;background:#101c2d;color:#d6e5fa;padding:5px 9px;border-radius:7px;cursor:pointer;font-size:12px}
+.legend-item.off{opacity:.35}.legend-dot{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:6px}
+.chart-stage{position:relative;background:#0b1627;border:1px solid #263952;border-radius:11px;overflow:hidden}
+canvas.chart{height:285px;display:block;width:100%;cursor:crosshair}
+.chart-tooltip{position:absolute;pointer-events:none;z-index:2;background:#0c1728ed;border:1px solid #48617e;border-radius:9px;padding:10px 12px;font-size:12px;line-height:1.8;box-shadow:0 8px 25px #0007;display:none;min-width:130px}
+.chart-foot{display:flex;justify-content:space-between;gap:10px;margin-top:10px;font-size:11px;color:#849ab7;flex-wrap:wrap}
+.section-kicker{color:#60a5fa;font-size:11px;font-weight:800;letter-spacing:1.8px;margin-bottom:7px}
+#historyToolbar{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+#historyToolbar select,#historyToolbar button{border:1px solid #36506f;border-radius:9px;padding:8px 12px;background:#101d30;color:#e6f0ff;cursor:pointer}
+#historyToolbar button.active{background:#1d4e7b}
+@media(max-width:800px){header{position:static}main{padding:12px}.card{padding:15px}.chart-legend{margin-left:0}canvas.chart{height:260px}}
+</style></head><body><header><h1>SWERVE ROBOT · Dashboard</h1><div><span id="connection">● Connecting</span> · <span id="mode">SIMULATION</span></div></header><main>
+<section class="card"><h2>Joystick / Robot control</h2><canvas id="joy" width="260" height="260"></canvas><p class="muted">Kéo joystick để điều khiển vx/vy. Phím W A S D để di chuyển; Q/E để quay (chế độ yaw rate). Chọn Heading hold để điều khiển hướng mục tiêu. Thả tay = dừng.</p><label><input id="headingMode" type="checkbox"> Heading hold (điều khiển góc mục tiêu)</label><p><label>Target heading (°): <output id="targetVal">0</output><input id="targetHeading" type="range" min="-180" max="180" step="1" value="0"></label></p><label>Yaw rate (rad/s): <output id="yawVal">0.00</output><input id="yaw" type="range" min="-2" max="2" step="0.05" value="0"></label><p><button id="enable">ENABLE</button> <button id="stop" class="stop">STOP / E-STOP (demo)</button></p><p id="controlStatus" class="muted">Control disabled</p></section>
+<section class="card"><h2>Vehicle pose · Local XY map</h2><canvas id="map" width="650" height="300"></canvas><div class="values"><div class="metric">X (m)<b id="x">0</b></div><div class="metric">Y (m)<b id="y">0</b></div><div class="metric">Heading (°)<b id="heading">0</b></div></div><p class="muted">Bản đồ tọa độ cục bộ mô phỏng (không phải GPS/OSM). Dùng cuộn chuột để zoom.</p></section>
+<section class="card wide"><h2>Wheel telemetry · 4 modules</h2><div class="wheels" id="wheels"></div><p class="muted">Đồ thị tách riêng từng bánh để tránh chồng đường.</p></section>
+<section class="card wide">
+<div class="section-kicker">TELEMETRY ANALYTICS</div>
+<div style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap"><div><h2 style="font-size:20px;margin-bottom:4px">Live signals & historical trends</h2><p class="muted" style="margin:0">Dữ liệu từ WebSocket · biểu đồ đa kênh · bộ nhớ lịch sử trên trình duyệt</p></div>
+<div id="historyToolbar"><label class="muted" for="historyLimit">Lưu lịch sử</label><select id="historyLimit"><option value="300">5 phút</option><option value="900">15 phút</option><option value="1800" selected>30 phút</option><option value="3600">60 phút</option></select><button id="pauseCharts">⏸ Pause</button><button id="exportCsv">↓ Export CSV</button><button id="clearHistory">Clear</button></div></div>
+</section>
+<section class="card chart-card"><h2>Wheel velocity</h2><p class="chart-subtitle">Tốc độ bánh xe · m/s</p><div id="chart-speed"></div></section>
+<section class="card chart-card"><h2>Wheel acceleration</h2><p class="chart-subtitle">Gia tốc bánh xe · m/s²</p><div id="chart-accel"></div></section>
+<section class="card wide chart-card"><h2>Steering angle</h2><p class="chart-subtitle">Góc lái 4 module · độ (°)</p><div id="chart-steering"></div></section>
+</main><script>
+const $=id=>document.getElementById(id),ids=['FL','FR','RL','RR'],colors=['#5eead4','#60a5fa','#fbbf24','#f472b6'];let socket,enabled=false,joy={x:0,y:0},pose={x:0,y:0,heading:0},path=[],zoom=25;let history=[],historyPaused=false,historyLimit=1800;const chartState={speed:{window:30,visible:[true,true,true,true]},accel:{window:30,visible:[true,true,true,true]},steering:{window:30,visible:[true,true,true,true]}};
+$('wheels').innerHTML=ids.map(id=>`<div class="wheel"><b>${id}</b><div id="${id}">0 m/s<br>0 m/s²<br>0°</div></div>`).join('');
+function connect(){socket=new WebSocket(`ws://${location.host}/ws`);socket.onopen=()=>{$('connection').textContent='● Connected';$('connection').style.color='#5eead4'};socket.onclose=()=>{$('connection').textContent='● Disconnected';$('connection').style.color='#fb7185';enabled=false;setTimeout(connect,1500)};socket.onmessage=e=>{let d=JSON.parse(e.data);if(d.type!=='telemetry')return;pose=d.pose;path.push({...pose});if(path.length>3000)path.shift();['x','y','heading'].forEach(k=>$(k).textContent=pose[k].toFixed(2));d.wheels.forEach(w=>{$(w.id).innerHTML=`${w.speed.toFixed(2)} m/s<br>${w.accel.toFixed(2)} m/s²<br>${w.steering.toFixed(1)}°`});history.push({t:Date.now(),speed:d.wheels.map(w=>w.speed),accel:d.wheels.map(w=>w.accel),steering:d.wheels.map(w=>w.steering)});trimHistory();drawMap();if(!historyPaused)drawCharts();}}connect();
+function send(){if(socket?.readyState===1)socket.send(JSON.stringify({type:'command',vx:joy.y,vy:joy.x,omega:+$('yaw').value+(keys.has('e')?1:0)-(keys.has('q')?1:0),heading_mode:$('headingMode').checked,heading_target:+$('targetHeading').value,enabled}));}setInterval(send,100);
+$('enable').onclick=()=>{enabled=!enabled;$('enable').textContent=enabled?'DISABLE':'ENABLE';$('controlStatus').textContent=enabled?'Control enabled':'Control disabled';if(!enabled)reset();send()};function reset(){joy={x:0,y:0};$('yaw').value=0;$('yawVal').textContent='0.00';$('targetHeading').value=0;$('targetVal').textContent='0';drawJoy()}$('stop').onclick=()=>{enabled=false;reset();$('enable').textContent='ENABLE';$('controlStatus').textContent='STOP requested (simulation only)';send()};$('yaw').oninput=()=>{$('yawVal').textContent=(+$('yaw').value).toFixed(2)};
+$('targetHeading').oninput=()=>{$('targetVal').textContent=$('targetHeading').value};$('headingMode').onchange=()=>{$('yaw').disabled=$('headingMode').checked;$('targetHeading').disabled=!$('headingMode').checked};$('headingMode').onchange();const jc=$('joy'),jctx=jc.getContext('2d');function drawJoy(){jctx.clearRect(0,0,260,260);jctx.strokeStyle='#527398';jctx.lineWidth=2;jctx.beginPath();jctx.arc(130,130,105,0,7);jctx.stroke();jctx.beginPath();jctx.moveTo(130,15);jctx.lineTo(130,245);jctx.moveTo(15,130);jctx.lineTo(245,130);jctx.stroke();jctx.fillStyle='#5eead4';jctx.beginPath();jctx.arc(130+joy.x*100,130-joy.y*100,22,0,7);jctx.fill()}drawJoy();let dragging=false;function moveJoy(e){let r=jc.getBoundingClientRect(),x=((e.clientX-r.left)/r.width*260-130)/100,y=(130-(e.clientY-r.top)/r.height*260)/100,m=Math.max(1,Math.hypot(x,y));joy={x:x/m,y:y/m};drawJoy()}jc.onpointerdown=e=>{dragging=true;jc.setPointerCapture(e.pointerId);moveJoy(e)};jc.onpointermove=e=>{if(dragging)moveJoy(e)};jc.onpointerup=jc.onpointercancel=()=>{dragging=false;joy={x:0,y:0};drawJoy()};let keys=new Set();window.onkeydown=e=>{if(['w','a','s','d','q','e'].includes(e.key.toLowerCase())){keys.add(e.key.toLowerCase());keyJoy()}};window.onkeyup=e=>{keys.delete(e.key.toLowerCase());keyJoy()};function keyJoy(){if(dragging)return;joy={x:Number(keys.has('d'))-Number(keys.has('a')),y:Number(keys.has('w'))-Number(keys.has('s'))};drawJoy()}window.onblur=()=>{keys.clear();reset();enabled=false;send()};
+
+function trimHistory(){const cutoff=Date.now()-historyLimit*1000;while(history.length&&history[0].t<cutoff)history.shift()}
+function timeLabel(t){return new Date(t).toLocaleTimeString('vi-VN',{hour12:false})}
+for(const key of ['speed','accel','steering']){
+ const parent=$('chart-'+key);
+ parent.innerHTML=`<div class="chart-tools"><label>Khung thời gian</label><select class="window"><option value="10">10 s</option><option value="30" selected>30 s</option><option value="60">1 phút</option><option value="300">5 phút</option><option value="900">15 phút</option><option value="1800">30 phút</option><option value="0">Tất cả</option></select><button class="auto active">Auto Y</button><div class="chart-legend">${ids.map((id,j)=>`<button class="legend-item" data-j="${j}"><span class="legend-dot" style="background:${colors[j]}"></span>${id}</button>`).join('')}</div></div><div class="chart-stage"><canvas class="chart" id="${key}"></canvas><div class="chart-tooltip"></div></div><div class="chart-foot"><span class="range">Đang chờ dữ liệu...</span><span>Hover để xem giá trị · 4 kênh độc lập</span></div>`;
+ const state=chartState[key];state.auto=true;state.hover=null;
+ parent.querySelector('.window').onchange=e=>{state.window=+e.target.value;drawCharts()};
+ parent.querySelector('.auto').onclick=e=>{state.auto=!state.auto;e.target.classList.toggle('active',state.auto);drawCharts()};
+ parent.querySelectorAll('.legend-item').forEach(btn=>btn.onclick=()=>{let j=+btn.dataset.j;state.visible[j]=!state.visible[j];btn.classList.toggle('off',!state.visible[j]);drawCharts()});
+ const canvas=$(key);canvas.onmousemove=e=>{const r=canvas.getBoundingClientRect();state.hover=(e.clientX-r.left)/r.width;drawCharts()};
+ canvas.onmouseleave=()=>{state.hover=null;parent.querySelector('.chart-tooltip').style.display='none';drawCharts()};
+}
+$('historyLimit').onchange=e=>{historyLimit=+e.target.value;trimHistory();drawCharts()};
+$('pauseCharts').onclick=()=>{historyPaused=!historyPaused;$('pauseCharts').textContent=historyPaused?'▶ Resume':'⏸ Pause';$('pauseCharts').classList.toggle('active',historyPaused);if(!historyPaused)drawCharts()};
+$('clearHistory').onclick=()=>{history=[];drawCharts()};
+$('exportCsv').onclick=()=>{const rows=[['timestamp_iso','FL_speed_mps','FR_speed_mps','RL_speed_mps','RR_speed_mps','FL_accel_mps2','FR_accel_mps2','RL_accel_mps2','RR_accel_mps2','FL_steering_deg','FR_steering_deg','RL_steering_deg','RR_steering_deg'],...history.map(r=>[new Date(r.t).toISOString(),...r.speed,...r.accel,...r.steering])];const blob=new Blob([rows.map(r=>r.join(',')).join('\\n')],{type:'text/csv;charset=utf-8'});const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download='swerve-telemetry-'+Date.now()+'.csv';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000)};
+function drawCharts(){
+ for(const key of ['speed','accel','steering']) drawChart(key);
+}
+function drawChart(key){
+ const c=$(key),ctx=c.getContext('2d'),st=chartState[key],parent=$('chart-'+key),rect=c.getBoundingClientRect();
+ const w=Math.max(300,rect.width),h=Math.max(220,rect.height),dpr=Math.min(window.devicePixelRatio||1,2);
+ if(c.width!==Math.round(w*dpr)||c.height!==Math.round(h*dpr)){c.width=Math.round(w*dpr);c.height=Math.round(h*dpr)}
+ ctx.setTransform(dpr,0,0,dpr,0,0);ctx.clearRect(0,0,w,h);
+ const m={l:62,r:18,t:23,b:37},pw=w-m.l-m.r,ph=h-m.t-m.b;
+ const end=history.length?history[history.length-1].t:Date.now(),start=st.window?end-st.window*1000:(history[0]?.t||end-30000);
+ const data=history.filter(p=>p.t>=start&&p.t<=end);
+ let vals=[];for(const p of data)for(let j=0;j<4;j++)if(st.visible[j])vals.push(p[key][j]);
+ let lo=vals.length?Math.min(...vals):0,hi=vals.length?Math.max(...vals):1;
+ if(st.auto){lo=Math.min(lo,0);hi=Math.max(hi,0);const pad=Math.max((hi-lo)*.12,key==='steering'?2:.04);lo-=pad;hi+=pad}
+ else {const bound=key==='steering'?180:key==='accel'?3:3;lo=-bound;hi=bound}
+ if(hi<=lo){hi=lo+1}
+ const px=t=>m.l+(t-start)/Math.max(1,end-start)*pw,py=v=>m.t+(hi-v)/(hi-lo)*ph;
+ ctx.font='11px system-ui';ctx.lineWidth=1;ctx.textAlign='right';
+ for(let i=0;i<=5;i++){let v=lo+(hi-lo)*i/5,y=py(v);ctx.strokeStyle='#263a53';ctx.beginPath();ctx.moveTo(m.l,y);ctx.lineTo(w-m.r,y);ctx.stroke();ctx.fillStyle='#9ab0cc';ctx.fillText(v.toFixed(Math.abs(hi-lo)<2?2:1),m.l-10,y+4)}
+ ctx.textAlign='center';for(let i=0;i<=5;i++){let t=start+(end-start)*i/5,x=px(t);ctx.strokeStyle='#1d3047';ctx.beginPath();ctx.moveTo(x,m.t);ctx.lineTo(x,h-m.b);ctx.stroke();ctx.fillStyle='#90a8c7';ctx.fillText(timeLabel(t),x,h-14)}
+ ctx.save();ctx.beginPath();ctx.rect(m.l,m.t,pw,ph);ctx.clip();
+ for(let j=0;j<4;j++){if(!st.visible[j])continue;ctx.beginPath();ctx.strokeStyle=colors[j];ctx.lineWidth=2;let begun=false;for(const p of data){let x=px(p.t),y=py(p[key][j]);if(!begun){ctx.moveTo(x,y);begun=true}else ctx.lineTo(x,y)}ctx.stroke()}
+ let nearest=null;
+ if(st.hover!==null&&data.length){const hoverX=st.hover*w;const target=start+(hoverX-m.l)/pw*(end-start);let low=0,high=data.length-1;while(low<high){const mid=(low+high)>>1;if(data[mid].t<target)low=mid+1;else high=mid}nearest=data[Math.abs(data[Math.max(0,low-1)]?.t-target)<Math.abs(data[low].t-target)?Math.max(0,low-1):low];const x=px(nearest.t);ctx.strokeStyle='#b9cce7';ctx.setLineDash([4,4]);ctx.beginPath();ctx.moveTo(x,m.t);ctx.lineTo(x,h-m.b);ctx.stroke();ctx.setLineDash([]);for(let j=0;j<4;j++){if(!st.visible[j])continue;ctx.fillStyle=colors[j];ctx.beginPath();ctx.arc(x,py(nearest[key][j]),4,0,Math.PI*2);ctx.fill()}}
+ ctx.restore();
+ const tip=parent.querySelector('.chart-tooltip');
+ if(nearest){tip.innerHTML='<b>'+timeLabel(nearest.t)+'</b>'+ids.map((id,j)=>st.visible[j]?`<div><span style="color:${colors[j]}">●</span> ${id}: <b>${nearest[key][j].toFixed(3)}</b></div>`:'').join('');tip.style.display='block';tip.style.left=Math.min(w-155,Math.max(70,px(nearest.t)+12))+'px';tip.style.top='35px'}else tip.style.display='none';
+ parent.querySelector('.range').textContent=`${data.length.toLocaleString('vi-VN')} mẫu hiển thị · ${history.length.toLocaleString('vi-VN')} mẫu lưu · ${data.length?timeLabel(data[0].t)+' — '+timeLabel(data[data.length-1].t):'Chưa có dữ liệu'}`;
+}
+window.addEventListener('resize',()=>{drawCharts();drawMap()});drawCharts();
+function drawMap(){let c=$('map'),g=c.getContext('2d'),w=c.width,h=c.height;g.clearRect(0,0,w,h);g.strokeStyle='#29405b';for(let x=w/2%zoom;x<w;x+=zoom){g.beginPath();g.moveTo(x,0);g.lineTo(x,h);g.stroke()}for(let y=h/2%zoom;y<h;y+=zoom){g.beginPath();g.moveTo(0,y);g.lineTo(w,y);g.stroke()}let X=x=>w/2+(x-pose.x)*zoom,Y=y=>h/2-(y-pose.y)*zoom;g.strokeStyle='#5eead4';g.lineWidth=2;g.beginPath();path.forEach((p,i)=>i?g.lineTo(X(p.x),Y(p.y)):g.moveTo(X(p.x),Y(p.y)));g.stroke();g.save();g.translate(w/2,h/2);g.rotate(-pose.heading*Math.PI/180);g.fillStyle='#60a5fa';g.beginPath();g.moveTo(18,0);g.lineTo(-14,-10);g.lineTo(-14,10);g.closePath();g.fill();g.restore();g.fillStyle='#a9b9ce';g.font='12px sans-serif';g.fillText('Local frame · '+(zoom).toFixed(0)+' px/m',12,20)}$('map').onwheel=e=>{e.preventDefault();zoom=Math.max(5,Math.min(120,zoom*(e.deltaY<0?1.15:.87)));drawMap()};drawMap();
+</script></body></html>
