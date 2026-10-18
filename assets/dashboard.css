@@ -1,0 +1,174 @@
+/* ---------- Theme and page layout ---------- */
+:root {
+  color-scheme: dark;
+  font-family: Inter, ui-sans-serif, system-ui, sans-serif;
+  background: #07111f;
+  color: #e7f0ff;
+}
+
+* { box-sizing: border-box; }
+body { margin: 0; background: radial-gradient(circle at top, #102744 0, #07111f 48%); }
+header {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+  padding: 14px 24px;
+  border-bottom: 1px solid #213650;
+  background: #081321ed;
+  backdrop-filter: blur(14px);
+}
+header h1 { margin: 0; font-size: 18px; letter-spacing: 1px; }
+main {
+  display: grid;
+  grid-template-columns: minmax(300px, 0.8fr) minmax(500px, 1.2fr);
+  gap: 16px;
+  max-width: 1500px;
+  margin: auto;
+  padding: 20px;
+}
+.card {
+  min-width: 0;
+  padding: 18px;
+  border: 1px solid #223954;
+  border-radius: 15px;
+  background: #0c192bd9;
+  box-shadow: 0 14px 34px #0004;
+}
+.wide { grid-column: 1 / -1; }
+h2 { margin: 0 0 10px; font-size: 17px; }
+.muted { color: #8fa6c3; font-size: 12px; }
+.card-heading, .analytics-heading, .goal-panel, .form-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+.card-heading h2, .analytics-heading h2, .analytics-heading p { margin-bottom: 0; }
+
+/* ---------- Shared controls ---------- */
+button, select, input[type="number"] {
+  border: 1px solid #365474;
+  border-radius: 9px;
+  padding: 8px 12px;
+  background: #11223a;
+  color: #e7f0ff;
+}
+button { cursor: pointer; font-weight: 700; }
+button:hover:not(:disabled), button.active { border-color: #62b2ff; background: #17395c; }
+button:disabled { cursor: not-allowed; opacity: 0.45; }
+button.danger { border-color: #7d3a4b; color: #ff9db1; }
+input[type="range"] { width: 100%; accent-color: #5eead4; }
+.form-row { justify-content: flex-start; margin: 12px 0; }
+.section-kicker { color: #60a5fa; font-size: 11px; font-weight: 800; letter-spacing: 1.8px; }
+
+/* ---------- Joystick, map and telemetry cards ---------- */
+#joy { display: block; width: min(260px, 100%); margin: 8px auto; touch-action: none; }
+#map {
+  display: block;
+  width: 100%;
+  height: min(48vh, 390px);
+  margin-top: 12px;
+  border: 1px solid #29415f;
+  border-radius: 11px;
+  background: #081321;
+  cursor: grab;
+  touch-action: none;
+}
+#map.dragging { cursor: grabbing; }
+#map.selecting { cursor: crosshair; box-shadow: inset 0 0 0 2px #5eead4; }
+.map-actions { display: flex; gap: 8px; }
+.goal-panel {
+  justify-content: flex-end;
+  min-height: 48px;
+  padding-top: 10px;
+  color: #a7b9cf;
+  font-size: 12px;
+}
+#goalStatus { margin-right: auto; }
+#goalYaw { width: 78px; }
+.values, .wheels {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(85px, 1fr));
+  gap: 9px;
+  margin-top: 12px;
+}
+.wheels { grid-template-columns: repeat(4, 1fr); }
+.metric, .wheel {
+  padding: 10px;
+  border: 1px solid #263e5b;
+  border-radius: 9px;
+  background: #0b1728;
+  color: #849bb8;
+  font-size: 11px;
+}
+.metric b, .wheel b { display: block; margin-top: 4px; color: #eef6ff; font-size: 17px; }
+.wheel div { margin-top: 7px; color: #a8bad0; line-height: 1.65; }
+
+/* ---------- Canvas chart controls ---------- */
+#historyToolbar, .chart-tools, .chart-legend { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.chart-tools { min-height: 42px; margin-bottom: 8px; color: #90a7c3; font-size: 11px; }
+.chart-legend { margin-left: auto; }
+.legend-item { padding: 5px 8px; border: 0; background: transparent; }
+.legend-item.off { opacity: 0.35; text-decoration: line-through; }
+.legend-dot { display: inline-block; width: 8px; height: 8px; margin-right: 5px; border-radius: 50%; }
+.chart-subtitle { margin: -6px 0 10px; color: #8fa6c3; font-size: 12px; }
+.chart-stage { position: relative; border: 1px solid #263952; border-radius: 11px; overflow: hidden; }
+canvas.chart { display: block; width: 100%; height: 285px; cursor: crosshair; }
+.chart-tooltip {
+  position: absolute;
+  z-index: 2;
+  display: none;
+  min-width: 130px;
+  padding: 9px 11px;
+  border: 1px solid #48617e;
+  border-radius: 9px;
+  background: #0c1728ee;
+  box-shadow: 0 8px 25px #0007;
+  font-size: 12px;
+  line-height: 1.8;
+  pointer-events: none;
+}
+.chart-foot { display: flex; justify-content: space-between; gap: 10px; margin-top: 9px; color: #849ab7; font-size: 11px; }
+
+/* ---------- Result modal ---------- */
+.modal[hidden] { display: none; }
+.modal { position: fixed; inset: 0; z-index: 100; display: grid; place-items: center; padding: 18px; }
+.modal-backdrop { position: absolute; inset: 0; background: #020712c7; backdrop-filter: blur(4px); }
+.modal-dialog {
+  position: relative;
+  width: min(420px, 100%);
+  padding: 26px;
+  border: 1px solid #355372;
+  border-radius: 16px;
+  background: #0d1c30;
+  text-align: center;
+  box-shadow: 0 24px 80px #000b;
+}
+.notice-icon {
+  display: grid;
+  place-items: center;
+  width: 46px;
+  height: 46px;
+  margin: 0 auto 12px;
+  border-radius: 50%;
+  background: #1d4e7b;
+  color: #d8edff;
+  font-size: 24px;
+  font-weight: 900;
+}
+.modal.success .notice-icon { background: #17634d; }
+.modal.error .notice-icon { background: #793342; }
+
+@media (max-width: 900px) {
+  header { position: static; }
+  main { grid-template-columns: 1fr; padding: 12px; }
+  .wide { grid-column: auto; }
+  .values { grid-template-columns: repeat(3, 1fr); }
+  .wheels { grid-template-columns: repeat(2, 1fr); }
+  canvas.chart { height: 250px; }
+}

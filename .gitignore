@@ -66,3 +66,8 @@ vcpkg_installed/
 # test output & cache
 Testing/
 .cache/
+
+# Python dashboard environments and bytecode
+.venv/
+__pycache__/
+*.pyc
